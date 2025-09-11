@@ -1,5 +1,5 @@
-# 📘 README – Business Insights Project
-
+# 📘 README – Business Sales Insights Project by using SQL
+DATASET- https://www.kaggle.com/datasets/ankitrajmishra/sales-store
 ---
 
 ## **Overview**
