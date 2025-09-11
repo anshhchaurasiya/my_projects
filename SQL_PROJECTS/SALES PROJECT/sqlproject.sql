@@ -22,7 +22,7 @@ CREATE TABLE sales_store (
     status VARCHAR(15)
 );
 -- ===============================================
--- Step 2: Load CSV Data (with proper conversions)
+-- Step 2: Loading data 
 -- ===============================================
 LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/sales.csv'
 INTO TABLE sales_store
