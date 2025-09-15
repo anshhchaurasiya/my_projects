@@ -1,7 +1,7 @@
-💰 Personal Finance & Tax Calculator 📊
-🚀 About This Project
-This Streamlit-powered finance application helps users make informed financial decisions by providing:
-✅ Fixed Deposit Calculator – Compare best interest rates & calculate FD returns.
+# 💰 Personal Finance & Tax Calculator 📊
+## 🚀 About This Project
+### This Streamlit-powered finance application helps users make informed financial decisions by providing:
+### ✅ Fixed Deposit Calculator – Compare best interest rates & calculate FD returns.
 ✅ Car Budget Rule – Plan your car purchase with EMI & affordability analysis.
 ✅ Investment Rule – Get insights on monthly investment recommendations.
 ✅ Home Affordability Check – Find out if a property fits your budget.
