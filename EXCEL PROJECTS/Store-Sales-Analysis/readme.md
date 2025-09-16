@@ -1,4 +1,6 @@
 <img width="1859" height="818" alt="image" src="https://github.com/user-attachments/assets/44209fc1-7861-4a1d-8044-f17e4aee74a7" />
+
+
 # 📊 Excel Dashboard
 
 An interactive Excel Dashboard designed to visualize and analyze key data insights in a simple, clean, and user-friendly format. This dashboard is based on Vrinda Store’s 1-year sales data, providing a detailed analysis of customer behavior, order status, sales channels, demographics, and regional performance.
