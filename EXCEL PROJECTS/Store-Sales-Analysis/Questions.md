@@ -12,3 +12,4 @@
 8. What is the **highest selling category**?
 
 ---
+### The above questions are answered in dashboard
