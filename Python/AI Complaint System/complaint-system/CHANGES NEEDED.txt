@@ -1,0 +1,5 @@
+PROJECT- COMPLAINT SYSTEM 
+DATE- 17 AUGUST 2026
+This file tells about  what improvement we can do in the project
+**Task 1 (Frontend/Backend): Add duplicate complaint ID validation on submit and render an inline error message: "Complaint is already registered."
+**Task 2 (AI/Prompt Engineering):** Refactor prompts with strict schema constraints to ensure the LLM returns only valid, correctly typed data for every field (e.g., strings, numbers, booleans, and formatted dates).

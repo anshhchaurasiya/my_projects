@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quality Complaint Management System</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --border: #cbd5e1;
+            --radius: 8px;
+            --chat-bg: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Fixed Split-Screen App Shell */
+        .app-layout {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        /* LEFT SIDE: Scrollable Structured Form */
+        .form-section {
+            flex: 1;
+            height: 100%;
+            padding: 2rem;
+            overflow-y: auto;
+            border-right: 1px solid var(--border);
+            background: var(--bg);
+        }
+
+        .form-container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* RIGHT SIDE: Fixed Position Chat Interface */
+        .chat-section {
+            width: 420px;
+            min-width: 380px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--card-bg);
+            box-shadow: -2px 0 12px rgba(0,0,0,0.06);
+            position: relative;
+            z-index: 10;
+        }
+
+        .chat-header {
+            flex-shrink: 0;
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--border);
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+
+        .chat-header h2 {
+            font-size: 1.1rem;
+            color: #0f172a;
+        }
+
+        .chat-header p {
+            margin-top: 0.25rem;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .debug-toggle {
+            font-size: 0.7rem;
+            border: 1px solid var(--border);
+            background: #f8fafc;
+            border-radius: 6px;
+            padding: 0.3rem 0.5rem;
+            cursor: pointer;
+            color: #475569;
+            flex-shrink: 0;
+        }
+        .debug-toggle.active {
+            background: #dbeafe;
+            border-color: #93c5fd;
+            color: #1d4ed8;
+        }
+
+        .chat-messages {
+            flex: 1 1 0%;
+            min-height: 0;
+            padding: 1rem;
+            overflow-y: auto;
+            background-color: var(--chat-bg);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background-color: var(--primary);
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .message.bot {
+            align-self: flex-start;
+            background-color: #e2e8f0;
+            color: var(--text);
+            border-bottom-left-radius: 2px;
+        }
+
+        .message.system {
+            align-self: center;
+            background: #fef3c7;
+            color: #92400e;
+            font-size: 0.8rem;
+            border: 1px solid #fde68a;
+        }
+
+        .message.error {
+            align-self: center;
+            background: #fee2e2;
+            color: #991b1b;
+            font-size: 0.8rem;
+            border: 1px solid #fecaca;
+        }
+
+        .message.debug {
+            align-self: stretch;
+            background: #0f172a;
+            color: #d1fae5;
+            font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+            font-size: 0.72rem;
+            border-radius: 8px;
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        /* Fixed Chat Bottom Input Area */
+        .chat-input-wrapper {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            border-top: 1px solid var(--border);
+            background: #ffffff;
+            padding: 0.75rem 1rem;
+            gap: 0.5rem;
+        }
+
+        .file-preview {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            width: fit-content;
+            border: 1px solid #c7d2fe;
+        }
+
+        .file-preview button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            color: #4338ca;
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-end;
+        }
+
+        .btn-attach {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 0 0.85rem;
+            cursor: pointer;
+            font-size: 1.15rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 44px;
+            transition: background 0.2s, border-color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-attach:hover {
+            background: #e2e8f0;
+            border-color: #94a3b8;
+        }
+
+        .chat-input-row textarea {
+            flex: 1;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 0.6rem 0.75rem;
+            font-size: 0.9rem;
+            font-family: inherit;
+            resize: none;
+            height: 44px;
+            outline: none;
+            line-height: 1.4;
+        }
+
+        .chat-input-row textarea:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-send {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            padding: 0 1.25rem;
+            height: 44px;
+            font-weight: 600;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        .btn-send:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Form Controls Styling */
+        h1 { margin-bottom: 1.5rem; font-size: 1.5rem; }
+        fieldset { border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.5rem; background: #fff; }
+        legend { font-weight: 600; padding: 0 0.5rem; color: var(--primary); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .full-width { grid-column: 1 / -1; }
+        .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        label { font-size: 0.85rem; font-weight: 500; color: #334155; }
+        input, select, textarea { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.9rem; font-family: inherit; transition: background-color 0.3s ease, box-shadow 0.3s ease; }
+        textarea { resize: vertical; min-height: 70px; }
+        .radio-group { display: flex; gap: 1rem; align-items: center; margin-top: 0.4rem; }
+        .batch-input-container { display: flex; gap: 0.5rem; }
+        .batch-list { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.4rem; }
+        .batch-tag { background: #e0e7ff; color: #3730a3; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem; display: flex; align-items: center; gap: 0.3rem; }
+        .batch-tag button { background: none; border: none; cursor: pointer; font-weight: bold; }
+        .btn-add { background: #e2e8f0; border: 1px solid var(--border); border-radius: var(--radius); padding: 0 0.8rem; cursor: pointer; font-weight: 500; }
+        .actions { display: flex; justify-content: flex-end; gap: 1rem; }
+        .btn-submit { background-color: var(--primary); color: white; border: none; padding: 0.6rem 1.5rem; border-radius: var(--radius); cursor: pointer; font-weight: 600; }
+        .btn-submit:disabled { background-color: #93c5fd; cursor: not-allowed; }
+        .save-status { font-size: 0.85rem; color: #64748b; }
+        .save-status.ok { color: #15803d; font-weight: 600; }
+        .save-status.err { color: #b91c1c; font-weight: 600; }
+
+        /* Auto-fill highlight so it's obvious *when* a field actually got updated */
+        .field-updated {
+            background-color: #d1fae5 !important;
+            box-shadow: 0 0 0 2px #34d399 !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-layout">
+
+    <!-- LEFT SIDE: STRUCTURED FORM -->
+    <div class="form-section">
+        <div class="form-container">
+            <h1>Quality Complaint Record</h1>
+
+            <form id="complaintForm">
+                <fieldset>
+                    <legend>General Information</legend>
+                    <div class="grid">
+                        <div class="form-group">
+                            <label for="complaint_id">Complaint ID</label>
+                            <input type="text" id="complaint_id" name="complaint_id" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="complaint_date">Complaint Date</label>
+                            <input type="text" id="complaint_date" name="complaint_date">
+                        </div>
+                        <div class="form-group">
+                            <label for="source">Source</label>
+                            <input type="text" id="source" name="source">
+                        </div>
+                        <div class="form-group">
+                            <label for="customer">Customer Name</label>
+                            <input type="text" id="customer" name="customer">
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend>Product & Manufacturing Info</legend>
+                    <div class="grid">
+                        <div class="form-group">
+                            <label for="api_name">API Name</label>
+                            <input type="text" id="api_name" name="api_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="api_code">API Code</label>
+                            <input type="text" id="api_code" name="api_code" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="batch_lot_no">Batch / Lot No.</label>
+                            <input type="text" id="batch_lot_no" name="batch_lot_no" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="coa_no">COA No.</label>
+                            <input type="text" id="coa_no" name="coa_no" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="manufacturing_date">Manufacturing Date</label>
+                            <input type="text" id="manufacturing_date" name="manufacturing_date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="retest_date">Retest Date</label>
+                            <input type="text" id="retest_date" name="retest_date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="quantity_supplied">Quantity Supplied</label>
+                            <input type="text" id="quantity_supplied" name="quantity_supplied" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="quantity_affected">Quantity Affected</label>
+                            <input type="text" id="quantity_affected" name="quantity_affected" required>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend>Complaint Details</legend>
+                    <div class="grid">
+                        <div class="form-group">
+                            <label for="complaint_category">Complaint Category</label>
+                            <input type="text" id="complaint_category" name="complaint_category">
+                        </div>
+                        <div class="form-group">
+                            <label>Sample Available?</label>
+                            <div class="radio-group">
+                                <label><input type="radio" name="sample_available" value="true"> Yes</label>
+                                <label><input type="radio" name="sample_available" value="false" checked> No</label>
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="complaint_description">Complaint Description</label>
+                            <textarea id="complaint_description" name="complaint_description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="specification">Specification</label>
+                            <textarea id="specification" name="specification"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="customer_result">Customer Test Result</label>
+                            <textarea id="customer_result" name="customer_result"></textarea>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend>Investigation & CAPA</legend>
+                    <div class="grid">
+                        <div class="form-group full-width">
+                            <label for="investigation_root_cause">Root Cause</label>
+                            <textarea id="investigation_root_cause" name="investigation_root_cause"></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Impacted Batches</label>
+                            <div class="batch-input-container">
+                                <input type="text" id="impacted_batch_input" placeholder="Add batch #">
+                                <button type="button" class="btn-add" onclick="addBatch()">Add</button>
+                            </div>
+                            <div class="batch-list" id="batchList"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>CAPA Required?</label>
+                            <div class="radio-group">
+                                <label><input type="radio" name="capa_required" value="true" onchange="toggleCapaId(true)"> Yes</label>
+                                <label><input type="radio" name="capa_required" value="false" checked onchange="toggleCapaId(false)"> No</label>
+                            </div>
+                        </div>
+                        <div class="form-group" id="capaIdContainer" style="display: none;">
+                            <label for="capa_id">CAPA ID</label>
+                            <input type="text" id="capa_id" name="capa_id">
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend>Disposition & Closure</legend>
+                    <div class="grid">
+                        <div class="form-group full-width">
+                            <label for="final_conclusion_disposition">Final Conclusion</label>
+                            <textarea id="final_conclusion_disposition" name="final_conclusion_disposition"></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>
+                                <input type="checkbox" id="qa_approval_closure" name="qa_approval_closure">
+                                <strong>QA Approval & Complaint Closure</strong>
+                            </label>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <div class="actions">
+                    <span id="saveStatus" class="save-status"></span>
+                    <button type="submit" class="btn-submit" id="saveBtn">Save Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- RIGHT SIDE: FIXED AI CHAT INTERFACE -->
+    <div class="chat-section">
+        <div class="chat-header">
+            <div>
+                <h2>AI Assistant</h2>
+                <p>Type complaint updates or attach a document/image.</p>
+            </div>
+            <button type="button" class="debug-toggle" id="debugToggle" onclick="toggleDebug()">Debug: off</button>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">
+                Hello! Type updates or attach a PDF/Image. The form will automatically populate.
+            </div>
+        </div>
+
+        <div class="chat-input-wrapper">
+            <!-- Selected File Badge -->
+            <div id="filePreviewContainer" style="display: none;">
+                <div class="file-preview">
+                    <span id="fileNameDisplay">file.pdf</span>
+                    <button type="button" onclick="clearSelectedFile()" title="Remove file">&times;</button>
+                </div>
+            </div>
+
+            <div class="chat-input-row">
+                <!-- Hidden file input for images & PDFs -->
+                <input type="file" id="fileInput" accept="image/*,application/pdf" style="display: none;" onchange="handleFileSelect(event)">
+
+                <!-- Attachment Button -->
+                <button type="button" class="btn-attach" onclick="document.getElementById('fileInput').click()" title="Attach PDF or Image">📎</button>
+
+                <textarea id="chatInput" placeholder="Type complaint or update details..." onkeydown="handleKeyPress(event)"></textarea>
+                <button class="btn-send" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const API_URL = "{{ API_URL|default:'http://127.0.0.1:8000/complaint/call/' }}";
+    const SAVE_URL = "{{ SAVE_API_URL|default:'http://127.0.0.1:8000/complaint/save-complaint/' }}";
+    let impactedBatches = [];
+    let selectedFile = null;
+    let debugMode = false;
+
+    // ---------------------------------------------------------------
+    // Canonical field ids on this form, and common alternate names the
+    // backend/LLM might use instead. Everything gets compared in
+    // "normalized" form (lowercase, letters+digits only), so
+    // "Complaint Date", "complaint_date", "complaintDate" all match.
+    // ---------------------------------------------------------------
+    const FIELD_ALIASES = {
+        complaint_id: ['complaint_id', 'complaintid', 'id', 'complaint_no', 'complaintno', 'reference_no', 'referenceno'],
+        complaint_date: ['complaint_date', 'complaintdate', 'date', 'date_of_complaint', 'dateofcomplaint', 'reported_date', 'reporteddate'],
+        source: ['source', 'complaint_source', 'origin', 'channel'],
+        customer: ['customer', 'customer_name', 'customername', 'client', 'client_name', 'clientname'],
+        api_name: ['api_name', 'apiname', 'product_name', 'productname', 'material_name', 'materialname'],
+        api_code: ['api_code', 'apicode', 'product_code', 'productcode', 'material_code', 'materialcode'],
+        batch_lot_no: ['batch_lot_no', 'batchlotno', 'batch_no', 'batchno', 'lot_no', 'lotno', 'batch_number', 'batchnumber', 'lot_number', 'lotnumber', 'batch'],
+        coa_no: ['coa_no', 'coano', 'coa_number', 'coanumber', 'coa'],
+        manufacturing_date: ['manufacturing_date', 'manufacturingdate', 'mfg_date', 'mfgdate', 'date_of_manufacture', 'dateofmanufacture'],
+        retest_date: ['retest_date', 'retestdate', 'retest'],
+        quantity_supplied: ['quantity_supplied', 'quantitysupplied', 'qty_supplied', 'qtysupplied'],
+        quantity_affected: ['quantity_affected', 'quantityaffected', 'qty_affected', 'qtyaffected'],
+        complaint_category: ['complaint_category', 'complaintcategory', 'category', 'type', 'complaint_type', 'complainttype'],
+        complaint_description: ['complaint_description', 'complaintdescription', 'description', 'details', 'complaint_details', 'complaintdetails', 'summary'],
+        specification: ['specification', 'spec', 'specifications'],
+        customer_result: ['customer_result', 'customerresult', 'test_result', 'testresult', 'customer_test_result', 'customertestresult'],
+        investigation_root_cause: ['investigation_root_cause', 'investigationrootcause', 'root_cause', 'rootcause', 'investigation'],
+        capa_id: ['capa_id', 'capaid', 'capa_number', 'capanumber'],
+        final_conclusion_disposition: ['final_conclusion_disposition', 'finalconclusiondisposition', 'final_conclusion', 'finalconclusion', 'conclusion', 'disposition'],
+        sample_available: ['sample_available', 'sampleavailable', 'is_sample_available', 'issampleavailable'],
+        capa_required: ['capa_required', 'caparequired', 'is_capa_required', 'iscapa_required', 'iscapa'],
+        impacted_batches: ['impacted_batches', 'impactedbatches', 'affected_batches', 'affectedbatches', 'batches'],
+        qa_approval_closure: ['qa_approval_closure', 'qaapprovalclosure', 'qa_approved', 'qaapproved', 'closure', 'approved'],
+    };
+
+    // Build reverse lookup: normalized alias -> canonical field id
+    const ALIAS_LOOKUP = {};
+    for (const [canonical, aliases] of Object.entries(FIELD_ALIASES)) {
+        aliases.forEach(alias => { ALIAS_LOOKUP[normalizeKey(alias)] = canonical; });
+    }
+
+    function normalizeKey(str) {
+        return String(str).toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    // --- File Attachment Handlers ---
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file) {
+            selectedFile = file;
+            document.getElementById('fileNameDisplay').textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+            document.getElementById('filePreviewContainer').style.display = 'block';
+        }
+    }
+
+    function clearSelectedFile() {
+        selectedFile = null;
+        document.getElementById('fileInput').value = '';
+        document.getElementById('filePreviewContainer').style.display = 'none';
+    }
+
+    // --- Debug toggle ---
+    function toggleDebug() {
+        debugMode = !debugMode;
+        const btn = document.getElementById('debugToggle');
+        btn.textContent = debugMode ? 'Debug: on' : 'Debug: off';
+        btn.classList.toggle('active', debugMode);
+    }
+
+    // --- Chat Logic ---
+    function handleKeyPress(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+
+        if (!text && !selectedFile) return;
+
+        let displayMessage = text;
+        if (selectedFile) {
+            displayMessage = text ? `${text}\n📎 Attached: ${selectedFile.name}` : `📎 Attached: ${selectedFile.name}`;
+        }
+        appendMessage(displayMessage, 'user');
+
+        const formData = new FormData();
+        if (text) formData.append('text', text);
+        if (selectedFile) formData.append('file', selectedFile);
+
+        input.value = '';
+        clearSelectedFile();
+
+        const loadingId = appendMessage("Processing request...", 'system');
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                body: formData
+            });
+
+            const rawText = await response.text();
+            removeMessage(loadingId);
+
+            if (!response.ok) {
+                appendMessage(`Server error (status ${response.status}). See debug output for the raw response.`, 'error');
+                if (debugMode) appendMessage(rawText || '(empty response body)', 'debug');
+                return;
+            }
+
+            if (debugMode) {
+                appendMessage(`RAW RESPONSE:\n${rawText}`, 'debug');
+            }
+
+            const parsed = extractJSON(rawText);
+
+            if (!parsed) {
+                // Backend didn't return JSON at all -- show it as a normal
+                // chat reply, but flag clearly that the form can't be
+                // auto-filled from this response.
+                appendMessage(rawText, 'bot');
+                appendMessage('Note: this response was plain text, not JSON, so the form could not be auto-filled. The backend needs to return a JSON object of field values for auto-fill to work.', 'system');
+                return;
+            }
+
+            const { target, matchedCount, unmatchedKeys } = resolveFillTarget(parsed);
+            const filledFields = autoFillForm(target);
+
+            const replyText = parsed.reply || parsed.message || parsed.response
+                || (filledFields.length ? `Updated ${filledFields.length} field(s): ${filledFields.join(', ')}.` : 'No matching fields were found in the response.');
+            appendMessage(replyText, 'bot');
+
+            if (debugMode) {
+                appendMessage(
+                    `PARSED KEYS: ${Object.keys(parsed).join(', ') || '(none)'}\n` +
+                    `FILL TARGET KEYS: ${Object.keys(target).join(', ') || '(none)'}\n` +
+                    `FIELDS UPDATED (${filledFields.length}): ${filledFields.join(', ') || '(none)'}\n` +
+                    `UNMATCHED KEYS: ${unmatchedKeys.join(', ') || '(none)'}`,
+                    'debug'
+                );
+            }
+
+            if (!filledFields.length) {
+                appendMessage('None of the response keys matched a known form field. Turn on Debug (top right) and resend to see exactly what keys the backend sent.', 'system');
+            }
+
+        } catch (error) {
+            removeMessage(loadingId);
+            appendMessage(`Failed to reach the backend: ${error.message}`, 'error');
+            console.error("API Error:", error);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Robustly turn a raw response body into a JS object, tolerating:
+    //  - plain JSON
+    //  - JSON wrapped in ```json ... ``` or ``` ... ``` fences
+    //  - JSON with stray text before/after the { ... } block
+    // Returns null if no JSON object could be found.
+    // ---------------------------------------------------------------
+    function extractJSON(rawText) {
+        if (!rawText) return null;
+        let text = rawText.trim();
+
+        // Try straight parse first
+        try { return JSON.parse(text); } catch (e) { /* fall through */ }
+
+        // Strip markdown code fences
+        const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+        if (fenceMatch) {
+            try { return JSON.parse(fenceMatch[1].trim()); } catch (e) { /* fall through */ }
+        }
+
+        // Grab the first {...} block in the text
+        const firstBrace = text.indexOf('{');
+        const lastBrace = text.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace > firstBrace) {
+            const candidate = text.slice(firstBrace, lastBrace + 1);
+            try { return JSON.parse(candidate); } catch (e) { /* fall through */ }
+        }
+
+        return null;
+    }
+
+    // ---------------------------------------------------------------
+    // The backend might return the fields flat, e.g. {"complaint_id": ...},
+    // or nested under a wrapper key, e.g. {"reply": "...", "fields": {...}}
+    // or {"data": {...}}. Pick whichever object matches the most known
+    // field aliases.
+    // ---------------------------------------------------------------
+    function resolveFillTarget(parsed) {
+        const candidates = [parsed];
+        for (const value of Object.values(parsed)) {
+            if (value && typeof value === 'object' && !Array.isArray(value)) {
+                candidates.push(value);
+            }
+        }
+
+        let best = parsed;
+        let bestMatches = -1;
+        for (const candidate of candidates) {
+            const matches = Object.keys(candidate).filter(k => ALIAS_LOOKUP[normalizeKey(k)]).length;
+            if (matches > bestMatches) {
+                bestMatches = matches;
+                best = candidate;
+            }
+        }
+
+        const unmatchedKeys = Object.keys(best).filter(k => !ALIAS_LOOKUP[normalizeKey(k)]);
+        return { target: best, matchedCount: bestMatches, unmatchedKeys };
+    }
+
+    // --- Auto-Fill Form Logic ---
+    // Returns the list of canonical field ids that were actually updated.
+    function autoFillForm(data) {
+        const updated = [];
+        if (!data || typeof data !== 'object') return updated;
+
+        for (const [rawKey, rawValue] of Object.entries(data)) {
+            if (rawValue === null || rawValue === undefined || rawValue === '') continue;
+
+            const canonical = ALIAS_LOOKUP[normalizeKey(rawKey)];
+            if (!canonical) continue;
+
+            switch (canonical) {
+                case 'sample_available':
+                case 'capa_required': {
+                    const val = normalizeBoolean(rawValue);
+                    if (val === null) break;
+                    const radio = document.querySelector(`input[name="${canonical}"][value="${val}"]`);
+                    if (radio) {
+                        radio.checked = true;
+                        updated.push(canonical);
+                    }
+                    if (canonical === 'capa_required') toggleCapaId(val === 'true');
+                    break;
+                }
+                case 'qa_approval_closure': {
+                    const checkbox = document.getElementById('qa_approval_closure');
+                    if (checkbox) {
+                        if (typeof rawValue === 'object') {
+                            checkbox.checked = rawValue.approval_status === 'approved';
+                        } else {
+                            checkbox.checked = normalizeBoolean(rawValue) === 'true';
+                        }
+                        updated.push(canonical);
+                    }
+                    break;
+                }
+                case 'impacted_batches': {
+                    const arr = Array.isArray(rawValue)
+                        ? rawValue
+                        : String(rawValue).split(/[,;]+/).map(s => s.trim()).filter(Boolean);
+                    if (arr.length) {
+                        impactedBatches = [...new Set([...impactedBatches, ...arr])];
+                        renderBatches();
+                        updated.push(canonical);
+                    }
+                    break;
+                }
+                default: {
+                    const el = document.getElementById(canonical);
+                    if (el) {
+                        el.value = rawValue;
+                        flashField(el);
+                        updated.push(canonical);
+                    }
+                }
+            }
+        }
+        return updated;
+    }
+
+    function normalizeBoolean(val) {
+        if (typeof val === 'boolean') return val ? 'true' : 'false';
+        const s = String(val).trim().toLowerCase();
+        if (['true', 'yes', 'y', '1'].includes(s)) return 'true';
+        if (['false', 'no', 'n', '0'].includes(s)) return 'false';
+        return null;
+    }
+
+    function flashField(el) {
+        el.classList.remove('field-updated');
+        void el.offsetWidth; // restart animation
+        el.classList.add('field-updated');
+        setTimeout(() => el.classList.remove('field-updated'), 1800);
+    }
+
+    function appendMessage(text, sender) {
+        const messagesContainer = document.getElementById('chatMessages');
+        const msgDiv = document.createElement('div');
+        const id = 'msg-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+        msgDiv.id = id;
+        msgDiv.className = `message ${sender}`;
+        msgDiv.innerText = text;
+        messagesContainer.appendChild(msgDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        return id;
+    }
+
+    function removeMessage(id) {
+        const msg = document.getElementById(id);
+        if (msg) msg.remove();
+    }
+
+    function addBatch() {
+        const input = document.getElementById('impacted_batch_input');
+        const val = input.value.trim();
+        if (val && !impactedBatches.includes(val)) {
+            impactedBatches.push(val);
+            renderBatches();
+            input.value = '';
+        }
+    }
+
+    function removeBatch(idx) {
+        impactedBatches.splice(idx, 1);
+        renderBatches();
+    }
+
+    function renderBatches() {
+        const list = document.getElementById('batchList');
+        list.innerHTML = '';
+        impactedBatches.forEach((b, idx) => {
+            const tag = document.createElement('span');
+            tag.className = 'batch-tag';
+            tag.innerHTML = `${b} <button type="button" onclick="removeBatch(${idx})">&times;</button>`;
+            list.appendChild(tag);
+        });
+    }
+
+    function toggleCapaId(show) {
+        document.getElementById('capaIdContainer').style.display = show ? 'block' : 'none';
+    }
+
+    // ---------------------------------------------------------------
+    // SAVE RECORD -> POST the whole form as JSON to SAVE_URL
+    // ---------------------------------------------------------------
+    function collectFormPayload() {
+        const textFieldIds = Object.keys(FIELD_ALIASES).filter(
+            id => !['sample_available', 'capa_required', 'impacted_batches', 'qa_approval_closure'].includes(id)
+        );
+
+        const payload = {};
+        textFieldIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) payload[id] = el.value;
+        });
+
+        const sampleAvailable = document.querySelector('input[name="sample_available"]:checked');
+        payload.sample_available = sampleAvailable ? sampleAvailable.value === 'true' : null;
+
+        const capaRequired = document.querySelector('input[name="capa_required"]:checked');
+        payload.capa_required = capaRequired ? capaRequired.value === 'true' : null;
+
+        payload.impacted_batches = impactedBatches;
+        payload.qa_approval_closure = document.getElementById('qa_approval_closure').checked;
+
+        return payload;
+    }
+
+    document.getElementById('complaintForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const saveBtn = document.getElementById('saveBtn');
+        const statusEl = document.getElementById('saveStatus');
+        const payload = collectFormPayload();
+
+        saveBtn.disabled = true;
+        statusEl.textContent = 'Saving…';
+        statusEl.className = 'save-status';
+
+        if (debugMode) {
+            appendMessage(`SAVE PAYLOAD:\n${JSON.stringify(payload, null, 2)}`, 'debug');
+        }
+
+        try {
+            const response = await fetch(SAVE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            const rawText = await response.text();
+
+            if (!response.ok) {
+                throw new Error(`Server responded ${response.status}`);
+            }
+
+            let data = {};
+            try { data = JSON.parse(rawText); } catch (e) { /* non-JSON success body is fine */ }
+
+            statusEl.textContent = data.message || 'Saved successfully.';
+            statusEl.className = 'save-status ok';
+            appendMessage(data.message || 'Complaint record saved.', 'system');
+
+        } catch (err) {
+            statusEl.textContent = `Could not save (${err.message}).`;
+            statusEl.className = 'save-status err';
+            appendMessage(`Save failed: ${err.message}`, 'error');
+        } finally {
+            saveBtn.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>
