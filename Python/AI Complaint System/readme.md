@@ -1,5 +1,6 @@
-# These videos are the proof of how the project is working
-Input 1,2,3
+#I have uploaded videos for the proof of how the project is working
+FILE NAMES ARE -INPUT 1, INPUT 2,INPUT 3
+
 # GO INSIDE THE COMPLAINT FOLDER THERE U WILL FIND THE MAIN CODE 
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
