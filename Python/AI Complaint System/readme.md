@@ -233,13 +233,13 @@ The Python dependencies are listed in `requirements.txt`.
 If the project is stored in GitHub, clone it:
 
 ```bash
-git clone <YOUR_GITHUB_REPOSITORY_URL>
+git clone <YOUR_GITHUB_REPOSITORY_URL
 ```
 
 Move into the project folder:
 
 ```bash
-cd <PROJECT_FOLDER>
+cd <omplaint-system>
 ```
 
 ---
