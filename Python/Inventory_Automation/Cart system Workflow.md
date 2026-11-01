@@ -143,7 +143,7 @@ Because:
 - Invoice is generated only after successful stock update.
 - Database ensures no over-selling.
 
-This is exactly how a real e-commerce system works.
+
 
 ---
 
@@ -159,10 +159,4 @@ If you want to build a cart system, follow these steps:
 
 This is the entire **end-to-end cart system**.
 
-If you want, I can also create:
-✔ A beginner-friendly architecture diagram  
-✔ A flowchart  
-✔ A step-by-step coding guide (copy–paste style)
-
-Just tell me!
 
